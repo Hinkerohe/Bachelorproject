@@ -3,4 +3,4 @@ Compare different protein-encoding techniques (one-hot encoding, kmer encoding a
 
 meetings: every Tuesday 16:00
 
-important links: https://docs.google.com/document/d/1ez_XZLiMSksKnIliuKASX1k_Ni_Ii5fTdId5RpcN4U4/edit
+
