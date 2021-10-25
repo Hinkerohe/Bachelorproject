@@ -26,7 +26,9 @@ id_list = first_record.id.split("|")
 decrp_list = first_record.description.split("|")
 
 # print(decrp_list)
-"""['Spike', 'hCoV-19/Wuhan/WIV04/2019', '2019-12-30', 'EPI_ISL_402124', 'Original', 'hCoV-19^^Hubei', 'Human', 'Wuhan Jinyintan Hospital', 'Wuhan Institute of Virology', 'Shi', 'China']"""
+"""['Spike', 'hCoV-19/Wuhan/WIV04/2019', '2019-12-30', 'EPI_ISL_402124', 
+    'Original', 'hCoV-19^^Hubei', 'Human', 'Wuhan Jinyintan Hospital', 
+    'Wuhan Institute of Virology', 'Shi', 'China']"""
 
 count = 0
 a=0
@@ -62,28 +64,28 @@ tsv_data = pandas.read_csv("sars_cov_spike_protein_data\hcov_global.tsv", sep = 
 
 """tsv files
 
-strain	id_list[1]
+strain	decrp_list[1]
 virus	
-gisaid_epi_isl	id_list[3]
+gisaid_epi_isl	decrp_list[3]
 genbank_accession	
-date	id_list[2]
+date	decrp_list[2]
 region	
 country	
 division	
 location	
 region_exposure	
-country_exposure	
+country_exposure	decrp_list[10]
 division_exposure	
 segment	
 length	
-host	id_list[6]
+host	decrp_list[6]
 age	
 sex	
 Nextstrain_clade	
 pango_lineage	
 GISAID_clade	
-originating_lab	
-submitting_lab	
+originating_lab	decrp_list[7] 
+submitting_lab	decrp_list[8]
 authors	
 url	
 title	
