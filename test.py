@@ -6,7 +6,7 @@ import numpy
 """ Experimenting with fasta and tsv files """
 
 """fasta files"""
-fasta_sequence = SeqIO.parse("sars_cov_spike_protein_data\spikeprot.fasta", "fasta") 
+fasta_sequence = SeqIO.parse("./sars_cov_spike_protein_data/spikeprot.fasta", "fasta") 
 # for record in fasta_sequence:
 #     print(record.id)
 
@@ -17,7 +17,7 @@ fasta_sequence = SeqIO.parse("sars_cov_spike_protein_data\spikeprot.fasta", "fas
 
 # only the first record 
 first_record = next(fasta_sequence)
-# print (first_record)
+print (first_record)
 
 
 id_list = first_record.id.split("|")
@@ -32,18 +32,18 @@ decrp_list = first_record.description.split("|")
 
 count = 0
 a=0
-for record in fasta_sequence:
-    # record_id_list = record.description.split("|")
-    count+= 1
-    # if '2019' in record_id_list[2]:
-    #     print (record_id_list)
-    #     count+= 1
-print (count)
+# for record in fasta_sequence:
+#     # record_id_list = record.description.split("|")
+#     count+= 1
+#     # if '2019' in record_id_list[2]:
+#     #     print (record_id_list)
+#     #     count+= 1
+# print (count)
 
 
 """tsv files"""
 
-tsv_file = open("sars_cov_spike_protein_data\hcov_global.tsv")
+tsv_file = open("./sars_cov_spike_protein_data/hcov_global.tsv")
 tsv_table = csv.reader(tsv_file, delimiter = "\t")
 first_tsv_line = next(tsv_file)
 # print (first_tsv_line)
@@ -56,7 +56,7 @@ for line in tsv_file:
         break
 
 
-tsv_data = pandas.read_csv("sars_cov_spike_protein_data\hcov_global.tsv", sep = "\t")
+tsv_data = pandas.read_csv("./sars_cov_spike_protein_data/hcov_global.tsv", sep = "\t")
 
 # print(tsv_data)
 
@@ -81,7 +81,7 @@ length
 host	decrp_list[6]
 age	
 sex	
-Nextstrain_clade	
+Nextstrain_clade	!!Wichtig!!
 pango_lineage	
 GISAID_clade	
 originating_lab	decrp_list[7] 
