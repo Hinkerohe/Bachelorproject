@@ -154,6 +154,44 @@ name_list = ["./cleanData/19A20A.tsv"
             , "./cleanData/20D16Full.tsv"]
 
 
+name_list = ["./cleanData/19A20A.tsv"
+            , "./cleanData/19A19B.tsv"
+            , "./cleanData/20A1.tsv"
+            , "./cleanData/20A2.tsv"
+            , "./cleanData/20A3.tsv"
+            , "./cleanData/20A4.tsv"
+            , "./cleanData/20A5.tsv"
+            , "./cleanData/20A6.tsv"
+            , "./cleanData/20A7.tsv"
+            , "./cleanData/20C8.tsv"
+            , "./cleanData/20C9.tsv"
+            , "./cleanData/20C10.tsv"
+            , "./cleanData/20C11.tsv"
+            , "./cleanData/20B12.tsv"
+            , "./cleanData/20B13.tsv"
+            , "./cleanData/20B14.tsv"
+            , "./cleanData/20B15.tsv"
+            , "./cleanData/20D16.tsv"
+        ]
+new_name_list = ["./cleanData/cleanData/19A20A.tsv"
+            , "./cleanData/cleanData/19A19B.tsv"
+            , "./cleanData/cleanData/20A1.tsv"
+            , "./cleanData/cleanData/20A2.tsv"
+            , "./cleanData/cleanData/20A3.tsv"
+            , "./cleanData/cleanData/20A4.tsv"
+            , "./cleanData/cleanData/20A5.tsv"
+            , "./cleanData/cleanData/20A6.tsv"
+            , "./cleanData/cleanData/20A7.tsv"
+            , "./cleanData/cleanData/20C8.tsv"
+            , "./cleanData/cleanData/20C9.tsv"
+            , "./cleanData/cleanData/20C10.tsv"
+            , "./cleanData/cleanData/20C11.tsv"
+            , "./cleanData/cleanData/20B12.tsv"
+            , "./cleanData/cleanData/20B13.tsv"
+            , "./cleanData/cleanData/20B14.tsv"
+            , "./cleanData/cleanData/20B15.tsv"
+            , "./cleanData/cleanData/20D16.tsv"
+        ]
 def clean (files, names):
     index = 0
     for i in files:
@@ -166,9 +204,21 @@ def clean (files, names):
             result.to_csv(I,sep = '\t')
         index +=1
 
+def clean_data(names,outnames):
+    name_index = 0
+    for i in names:
+        file = pandas.read_csv(i, sep= '\t')
+        lengths = file.applymap(lambda x: len(str(x)))
+        bad_seq = numpy.where((lengths['In'] != 1274) | (lengths['Out'] != 1274), lengths.index, -1)
+        result = delete_rows(file, bad_seq)
+        with open(outnames[name_index], "w") as I:
+            result.to_csv(I,sep = '\t',columns=['In', 'Out'])
+        name_index+=1
+        print('finished', i, len(bad_seq))
 
+# clean_data(name_list, new_name_list)
 # clean(file_list, name_list)
-
+# print(len('FRSSVLHSTQDLFLPFFSNVTWFHAIHVSGTNGTKRFDNPVLPFNDGVYFASTEKSNIIRGWIFGTTLDSKTQSLLIVNNATNVVIKVCEFQFCNDPFLGVYYHKNNKSWMESEFRVYSSANNCTFEYVSQPFLMDLEGKQGNFKNLREFVFKNIDGYFKIYSKHTPINLVRDLPQGFSALEPLVDLPIGINITRFQTLLALHRSYLTPGESIVRFPNITNLCPFGEVFNATRFASVYAWNRKRISNCVADYSVLYNSASFSTFKCYGVSPTKLNDLCFTNVYADSFVIRGDEVRQIAPGQTGKIADYNYKLPDDFTGCVIAWNSNNLDSKVGGNYNYLYRLFRKSNLKPFERDISTEIYQAGSTPCNGVEGFNCYFPLQSYGFQPTNGVGYQPYRVVVLSFELLHAPATVCGPKKSTNLVKNKCVNFNFNGLTGTGVLTESNKKFLPFQQFGRDIADTTDAVRDPQTLEILDITPCSFGGVSVITPGTNTSNQVAVLYQGVNCTEVPVAIHADQLTPTWRVYSTGSNVFQTRAGCLIGAEHVNNSYECDIPIGAGICASYQTQTNSPRRARSVASQSIIAYTMSLGAENSVAYSNNSIAIPTNFTISVTTEILPVSMTKTSVDCTMYICGDSTECSNGSFCTQLNRALTGIAVEQDKNTQEVFAQVKQIYKTPPIKDFGGFNFSQILPDPSKPSKRSFIEDLLFNKVTLADAGFIKQYGDCLGDIAARDLICAQKFNGLTVLPPLLTDEMIAQYTSALLAGTITSGWTFGAGAALQIPFAMQMAYRFNGIGVTQNVLYENQKLIANQFNSAIGKIQDSLSSTASALGKLQDVVNQNAQALNTLVKQLSSNFGAISSVLNDILSRLDKVEAEVQIDRLITGRLQSLQTYVTQQLIRAAEIRASANLAATKMSECVLGQSKRVDFCGKGYHLMSFPQSAPHGVVFLHVTYVPAQEKNFTTAPAICHDGKAHFPREGVFVSNGTHWFVTQRNFYEPQIITTDNTFVSGNCDVVIGIVNNTVYDPLQPELDSFKEELDKYFKNHTSPDVDLGDISGINASVVNIQKEIDRLNEVAKNLNESLIDLQELGKYEQYIKWPWYIWLGFIAGLIAIVMVTIMLCCMTSCCSCLKGCCSCGSCCKFDEDDSEPVLKGVKLHYT'))
 
 # s = 'MFVFLVLLPLVSSQCVNLTTRTQLPPAYTNSFTRGVYYPDKVFRSSVLHSTQDLFLPFFSNVTWFHAIHVSGTNGTKRFDNPVLPFNDGVYFASTEKSNIIRGWIFGTTLDSKTQSLLIVNNATNVVIKVCEFQFCNDPFLGVYYHKNNKSWMESEFRVYSSANNCTFEYVSQPFLMDLEGKQGNFKNLREFVFKNIDGYFKIYSKHTPINLVRDLPQGFSALEPLVDLPIGINITRFQTLLALHRSYLTPGDSSSGWTAGAAAYYVGYLQPRTFLLKYNENGTITDAVDCALDPLSETKCTLKSFTVEKGIYQTSNFRVQPTESIVRFPNITNLCPFGEVFNATRFASVYAWNRKRISNCVADYSVLYNSASFSTFKCYGVSPTKLNDLCFTNVYADSFVIRGDEVRQIAPGQTGKIADYNYKLPDDFTGCVIAWNSNNLDSKVGGNYNYLYRLFRKSNLKPFERDISTEIYQAGSTPCNGVEGFNCYFPLQSYGFQPTNGVGYQPYRVVVLSFELLHAPATVCGPKKSTNLVKNKCVNFNFNGLTGTGVLTESNKKFLPFQQFGRDIADTTDAVRDPQTLEILDITPCSFGGVSVITPGTNTSNQVAVLYQGVNCTEVPVAIHADQLTPTWRVYSTGSNVFQTRAGCLIGAEHVNNSYECDIPIGAGICASYQTQTNSPRRARSVASQSIIAYTMSLGAENSVAYSNNSIAIPTNFTISVTTEILPVSMTKTSVDCTMYICGDSTECSNLLLQYGSFCTQLNRALTGIAVEQDKNTQEVFAQVKQIYKTPPIKDFGGFNFSQILPDPSKPSKRSFIEDLLFNKVTLADAGFIKQYGDCLGDIAARDLICAQKFNGLTVLPPLLTDEMIAQYTSALLAGTITSGWTFGAGAALQIPFAMQMAYRFNGIGVTQNVLYENQKLIANQFNSAIGKIQDSLSSTASALGKLQDVVNQNAQALNTLVKQLSSNFGAISSVLNDILSRLDKVEAEVQIDRLITGRLQSLQTYVTQQLIRAAEIRASANLAATKMSECVLGQSKRVDFCGKGYHLMSFPQSAPHGVVFLHVTYVPAQEKNFTTAPAICHDGKAHFPREGVFVSNGTHWFVTQRNFYEPQIITTDNTFVSGNCDVVIGIVNNTVYDPLQPELDSFKEELDKYFKNHTSPDVDLGDISGINASVVNIQKEIDRLNEVAKNLNESLIDLQELGKYEQYIKWPWYIWLGFIAGLIAIVMVTIMLCCMTSCCSCLKGCCSCGSCCKFDEDDSEPVLKGVKLHYT*'
 # print (len(s))
@@ -216,26 +266,24 @@ def raw_data(file):
 # to_plot = [(index, sum(map(lambda dict: dict.get(index, 0), raw_data_per_file))) for index in range(100)]
 # print(to_plot)
 
-
-to_plot_data = [(0, 0), (1, 33944), (2, 26735), (3, 19647), (4, 12905), (5, 10059), (6, 7358), (7, 7338), (8, 7831), 
-(9, 7514), (10, 6785), (11, 16166), (12, 16352), (13, 10411), (14, 8532), (15, 5193), (16, 3787), (17, 2377), 
-(18, 1322), (19, 1010), (20, 998), (21, 1029), (22, 933), (23, 775), (24, 681), (25, 553), (26, 957), (27, 765), 
-(28, 961), (29, 964), (30, 553), (31, 707), (32, 711), (33, 389), (34, 268), (35, 366), (36, 323), (37, 305), (38, 385), 
-(39, 751), (40, 1037), (41, 917), (42, 987), (43, 706), (44, 944), (45, 807), (46, 413), (47, 381), (48, 618), (49, 600), 
-(50, 668), (51, 547), (52, 325), (53, 241), (54, 526), (55, 628), (56, 765), (57, 558), (58, 388), (59, 415), (60, 815), (61, 609), 
-(62, 902), (63, 2381), (64, 2648), (65, 2217), (66, 1892), (67, 1357), (68, 1162), (69, 852), (70, 1017), (71, 981), (72, 1053), 
-(73, 2597), (74, 2596), (75, 2113), (76, 1260), (77, 992), (78, 1102), (79, 1024), (80, 1033), (81, 1058), (82, 1460), (83, 1225), 
-(84, 1019), (85, 857), (86, 915), (87, 565), (88, 368), (89, 258), (90, 1115), (91, 1017), (92, 856), (93, 718), (94, 691), (95, 660), 
-(96, 1028), (97, 576), (98, 357), (99, 750)]
-y_axis = []
-x_axis = [i for i in range(100)]
-for (key, value) in to_plot_data:
-    y_axis.append(value)
-print(y_axis)
-plt.bar(x_axis,y_axis)
-plt.xlabel('Levenshtein Number')
-plt.ylabel('Number of Sequences')
-plt.xticks([i for i in range(0,100,10)])
-plt.savefig('Levenshtein_Diagram3.png', dpi = 1000)
-# li = raw_data(c, sd)
-# print(li)
+"""plot Data"""
+# to_plot_data = [(0, 0), (1, 33944), (2, 26735), (3, 19647), (4, 12905), (5, 10059), (6, 7358), (7, 7338), (8, 7831), 
+# (9, 7514), (10, 6785), (11, 16166), (12, 16352), (13, 10411), (14, 8532), (15, 5193), (16, 3787), (17, 2377), 
+# (18, 1322), (19, 1010), (20, 998), (21, 1029), (22, 933), (23, 775), (24, 681), (25, 553), (26, 957), (27, 765), 
+# (28, 961), (29, 964), (30, 553), (31, 707), (32, 711), (33, 389), (34, 268), (35, 366), (36, 323), (37, 305), (38, 385), 
+# (39, 751), (40, 1037), (41, 917), (42, 987), (43, 706), (44, 944), (45, 807), (46, 413), (47, 381), (48, 618), (49, 600), 
+# (50, 668), (51, 547), (52, 325), (53, 241), (54, 526), (55, 628), (56, 765), (57, 558), (58, 388), (59, 415), (60, 815), (61, 609), 
+# (62, 902), (63, 2381), (64, 2648), (65, 2217), (66, 1892), (67, 1357), (68, 1162), (69, 852), (70, 1017), (71, 981), (72, 1053), 
+# (73, 2597), (74, 2596), (75, 2113), (76, 1260), (77, 992), (78, 1102), (79, 1024), (80, 1033), (81, 1058), (82, 1460), (83, 1225), 
+# (84, 1019), (85, 857), (86, 915), (87, 565), (88, 368), (89, 258), (90, 1115), (91, 1017), (92, 856), (93, 718), (94, 691), (95, 660), 
+# (96, 1028), (97, 576), (98, 357), (99, 750)]
+# y_axis = []
+# x_axis = [i for i in range(100)]
+# for (key, value) in to_plot_data:
+#     y_axis.append(value)
+# print(y_axis)
+# plt.bar(x_axis,y_axis)
+# plt.xlabel('Levenshtein Number')
+# plt.ylabel('Number of Sequence Pairs')
+# plt.xticks([i for i in range(0,100,10)])
+# plt.savefig('Levenshtein_Diagram4.png', dpi = 1000)
