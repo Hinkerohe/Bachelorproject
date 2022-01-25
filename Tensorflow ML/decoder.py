@@ -55,32 +55,32 @@ class Encoder2(tf.keras.layers.Layer):
     return output, state
 
 """for my dataset"""
-dataset_creator = enc.NMTDataset('seq-seq')
-BUFFER_SIZE = 1273 # 72? len(train)
-BATCH_SIZE = 67
-num_examples = 3
-# train_dataset, val_dataset, inp_seq, targ_seq = dataset_creator.call_seq(num_examples, BUFFER_SIZE, BATCH_SIZE, test)
-# print(train_dataset, next(iter(train_dataset)), 'AAAAAAAAAAAAAIIIIIII')
-train_dataset, test_input, test_output, targ_seq = dataset_creator.call_seq(num_examples, BUFFER_SIZE, BATCH_SIZE, test)
-max_vocab_size = 20
-embedding_dim = 32
-units = 20
-example_input_batch, example_target_batch = next(iter(train_dataset))
-# for e in train_dataset:
-#     print(e, 'AAAAAAAA')
-print(example_input_batch, 'AAAAAAAA')
-input_size = 20
-# Encode the input sequence.
-encoder = Encoder2(input_size,
-                  embedding_dim, units)
-example_enc_output, example_enc_state = encoder(example_input_batch)
+# dataset_creator = enc.NMTDataset('seq-seq')
+# BUFFER_SIZE = 1273 # 72? len(train)
+# BATCH_SIZE = 32
+# num_examples = 3
+# # train_dataset, val_dataset, inp_seq, targ_seq = dataset_creator.call_seq(num_examples, BUFFER_SIZE, BATCH_SIZE, test)
+# # print(train_dataset, next(iter(train_dataset)), 'AAAAAAAAAAAAAIIIIIII')
+# train_dataset, test_input, test_output, targ_seq = dataset_creator.call_seq(num_examples, BUFFER_SIZE, BATCH_SIZE, test)
+# max_vocab_size = 20
+# embedding_dim = 32
+# units = 20
+# example_input_batch, example_target_batch = next(iter(train_dataset))
+# # for e in train_dataset:
+# #     print(e, 'AAAAAAAA')
+# print(example_input_batch, 'AAAAAAAA')
+# input_size = 20
+# # Encode the input sequence.
+# encoder = Encoder2(input_size,
+#                   embedding_dim, units)
+# example_enc_output, example_enc_state = encoder(example_input_batch)
 
-example_enc_output_out, example_enc_state_out = encoder(example_target_batch)
+# example_enc_output_out, example_enc_state_out = encoder(example_target_batch)
 
-print(f'Input batch, shape (batch): {example_input_batch.shape}')
-print(f'Input batch tokens, shape (batch, s): {example_enc_output_out.shape}')
-print(f'Encoder output, shape (batch, s, units): {example_enc_output.shape}')
-print(f'Encoder state, shape (batch, units): {example_enc_state_out.shape}')
+# print(f'Input batch, shape (batch): {example_input_batch.shape}')
+# print(f'Input batch tokens, shape (batch, s): {example_enc_output_out.shape}')
+# print(f'Encoder output, shape (batch, s, units): {example_enc_output.shape}')
+# print(f'Encoder state, shape (batch, units): {example_enc_state_out.shape}')
 
 
 
@@ -133,21 +133,21 @@ class Decoder(tf.keras.layers.Layer):
 
         return DecoderOutput(rnn_output), state
             
-output_size = input_size
-decoder = Decoder(output_size,
-                  embedding_dim, units)
+# output_size = input_size
+# decoder = Decoder(output_size,
+#                   embedding_dim, units)
 
-dec_result, dec_state = decoder( example_target_batch,example_enc_output, state = example_enc_state)
+# dec_result, dec_state = decoder( example_target_batch,example_enc_output, state = example_enc_state)
 
-# dec_result, dec_state = decoder( example_target_batch,example_enc_output, state = dec_state)
+# # dec_result, dec_state = decoder( example_target_batch,example_enc_output, state = dec_state)
 
 
-print(f'logits shape: (batch_size, t, output_vocab_size) {dec_result.logits.shape}')
-print(tf.math.argmax(dec_result, axis = -1))
-print()
-print(f'state shape: (batch_size, dec_units) {dec_state.shape}')
-"""Compute results losses"""
-print(tf.math.argmax(dec_result, axis = -1))
+# print(f'logits shape: (batch_size, t, output_vocab_size) {dec_result.logits.shape}')
+# print(tf.math.argmax(dec_result, axis = -1))
+# print()
+# print(f'state shape: (batch_size, dec_units) {dec_state.shape}')
+# """Compute results losses"""
+# print(tf.math.argmax(dec_result, axis = -1))
 
 
 # loss = tf.keras.losses.SparseCategoricalCrossentropy(
