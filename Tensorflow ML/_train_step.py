@@ -4,7 +4,7 @@ import keras_encoder as enc
 import pandas
 import numpy as np
 import Dataset
-
+import time
 import typing
 from typing import Any, Tuple
 
@@ -18,14 +18,16 @@ import matplotlib.ticker as ticker
 
 train = pandas.read_csv("./cleanData/cleanData/20D16.tsv", sep= '\t')
 
-embedding_dim = 32
+embedding_dim = 22
 input_size = 22
 output_size = 22
 units = 64
 
 BUFFER_SIZE = len(train)
-BATCH_SIZE = 16
+BATCH_SIZE = 32
 num_examples = len(train)
+
+tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir="logs")
 
 loss_fun = tf.keras.losses.SparseCategoricalCrossentropy(
         from_logits=True, reduction='none')
@@ -67,6 +69,9 @@ class TrainSequence(tf.keras.Model):
         self.decoder = decoder
         self.optimizer = optimizer
 
+
+
+
     def _loop_step(self, new_tokens, enc_output, dec_state):
         input_token, target_token = new_tokens[:, 0:1], new_tokens[:, 1:2]
 
@@ -84,6 +89,7 @@ class TrainSequence(tf.keras.Model):
         return step_loss, dec_state
 
     def _train_step(self, inputs):
+        # print(inputs,'BBBBBBBBBBBBBBBBB')
         input_text, target_text = inputs
         # print(input_text.shape, target_text.shape)
         # print(input_text, target_text)
@@ -102,7 +108,7 @@ class TrainSequence(tf.keras.Model):
             dec_state = enc_state
             loss = tf.constant(0.0)
             # length of one sequence
-            # print(max_target_length-1,'BBBBBBBBBBBBBBBBB')
+            # print(input_text,'BBBBBBBBBBBBBBBBB')
             for t in tf.range(max_target_length-1):
                 # Pass in two tokens from the target sequence:
                 # 1. The current input to the decoder.
@@ -127,11 +133,34 @@ class TrainSequence(tf.keras.Model):
 
         # Return a dict mapping metric names to current value
         return {'batch_loss': loss}
+    
+    def train_step(self, inputs):
+        return self._train_step(inputs)
+
+class BatchLogs(tf.keras.callbacks.Callback):
+  def __init__(self, key):
+    self.key = key
+    self.logs = []
+
+  def on_train_batch_end(self, n, logs):
+    self.logs.append(logs[self.key])
+
+batch_loss = BatchLogs('batch_loss')
+
 
 translator = TrainSequence(
     embedding_dim, units)
-for i in range(5):
+
+translator.compile(
+    optimizer=tf.optimizers.Adam(0.1),
+    loss=loss_fun,
+)
+
+for i in range(1):
+
+    print(time.process_time())
     print(translator._train_step(inputs))
+    print(time.process_time())
 
 # for x in train_dataset:
 #     for n in range(32):

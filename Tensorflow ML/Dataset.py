@@ -73,6 +73,7 @@ def encoding(n):
         vocab = [i for i in range(20)]
         input_one_hot_text_processor.adapt(vocab)
         r = input_one_hot_text_processor
+        print(input_one_hot_text_processor.get_vocabulary())
     if n == 2:
         input_ordinal_text_processor = tf.keras.layers.TextVectorization(
             split = None)
@@ -84,7 +85,7 @@ def encoding(n):
 
 
 # print(output_text_processor.get_vocabulary())
-tec = 1
+tec = 0
 input_text_processor = encoding(tec)
 # input_text_processor.adapt(amino_acids)
 
@@ -103,6 +104,8 @@ class NMTDataset:
             new_seq = ordinal_encode(seq)
         if tec == 1:
             new_seq = ordinal_encode(seq)
+            new_seq = one_hot_encoding(seq)
+            # new_seq = input_text_processor(new_seq)
         if tec == 2:
             new_seq = k_mer(seq)
             input_text_processor.adapt(new_seq)
@@ -120,8 +123,6 @@ class NMTDataset:
         output_seq = [self.preprocessing_sequence(l)   for l in output_seq]
         # print(input_seq[1] , "AAAAAAAAAAAAAAAA")
         return input_seq, output_seq
-
-
 
     # Step 3 and Step 4
     def tokenize(self, dataset):

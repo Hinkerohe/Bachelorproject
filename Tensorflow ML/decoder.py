@@ -19,7 +19,7 @@ import io
 import time
 import pandas
 import numpy as np
-
+import Dataset
 import typing
 from typing import Any, Tuple
 import keras_encoder as enc
@@ -36,6 +36,8 @@ class Encoder2(tf.keras.layers.Layer):
     # The embedding layer converts tokens to vectors
     self.embedding = tf.keras.layers.Embedding(self.input_vocab_size,
                                                embedding_dim)
+    self.flatten = tf.keras.layers.Flatten()
+
 
     # The GRU RNN layer processes those vectors sequentially.
     self.gru = tf.keras.layers.GRU(self.enc_units,
@@ -46,8 +48,9 @@ class Encoder2(tf.keras.layers.Layer):
 
   def call(self, tokens, state=None):
     # 2. The embedding layer looks up the embedding for each token.
+    if Dataset.tec == 1:
+        tokens = self.flatten(tokens)
     vectors = self.embedding(tokens)
-
     # 3. The GRU processes the embedding sequence.
     output, state = self.gru(vectors, initial_state=state)
 
@@ -100,7 +103,7 @@ class Decoder(tf.keras.layers.Layer):
         self.dec_units = dec_units
         self.output_vocab_size = output_vocab_size
         self.embedding_dim = embedding_dim
-
+        self.flatten = tf.keras.layers.Flatten()
         # For Step 1. The embedding layer convets token IDs to vectors
         self.embedding = tf.keras.layers.Embedding(self.output_vocab_size,
                                                 embedding_dim)
@@ -126,6 +129,8 @@ class Decoder(tf.keras.layers.Layer):
         # print(encoder_output.shape, 'BBBBBBBBBBB')
 
         # Step 1. Lookup the embeddings
+        if Dataset.tec == 1:
+          new_tokens = self.flatten(new_tokens)
         vectors = self.embedding(new_tokens)
 
         # Step 2. Process one step with the RNN
