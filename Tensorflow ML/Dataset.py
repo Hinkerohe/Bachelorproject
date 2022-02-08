@@ -23,7 +23,6 @@ train = pandas.read_csv("./cleanData/cleanData/20D16.tsv", sep= '\t')
 
 def ordinal_encode(seq):
     """ each unique category value is assigned an integer value, here the index of the letter in the list"""
-    seq = re.sub(r"[*]", "", seq)
     encoded_seq = list(map(lambda x: amino_acids.index(x), seq))
     return encoded_seq
 
@@ -52,45 +51,40 @@ def one_hot_encoding(seq):
 def one_hot_decoding(seq):
     int_seq = list(map(lambda x: x.index(1), seq))
     decoded_seq = ordinal_decode(int_seq)
+    decoded_seq = ''.join(map(str, decoded_seq))
     return decoded_seq
 
 def k_mer(seq):
     n = 3
-    result = []
-    for i in range(1273-n):
-        result.append(seq[i : i + n])
+    result = ['' for i in range(1273-(n-1))]
+    for i in range(1273-(n-1)):
+        result[i] = seq[i : i + n]
     return result
 
+def k_mer_decoding(seq, input_vocab):
+    """first step: decode numbers to mers"""
+    seq = list(map(lambda x: input_vocab[x], seq))
+    """second step: decode mers to one hole sequence"""
+    n = 3
+    result = ['' for i in range(1273-(n-1))]
+    for i in range(0, 1273-n):
+        result[i] = seq[i][0]
+    result[1273-n] = seq[1273-n]
+    decoded_seq = ''.join(map(str, result))
+    return decoded_seq
 
+"""the vocabulary of k_mer encoding for encoding the mers to numbers"""
+def encoding(k):
+    cross_join_list = [ 'A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V']
+    for i in range(1,k):
+        cross_join_list = [x + y for x, y in itertools.product(cross_join_list, amino_acids)]
+    vocab = cross_join_list
+    return vocab
 
-def encoding(n):
-    if n == 0:
-        input_ordinal_text_processor = tf.keras.layers.TextVectorization(
-            split = None,
-            max_tokens=22)
-        input_ordinal_text_processor.adapt(amino_acids)
-        r = input_ordinal_text_processor
-    if n == 1:
-        input_one_hot_text_processor = tf.keras.layers.IntegerLookup(
-            output_mode = "one_hot")
-        vocab = [i for i in range(20)]
-        input_one_hot_text_processor.adapt(vocab)
-        r = input_one_hot_text_processor
-        # print(input_one_hot_text_processor.get_vocabulary())
-    if n == 2:
-        k = 3
-        input_ordinal_text_processor = tf.keras.layers.TextVectorization(
-            split = None)
-        cross_join_list = [ 'A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V']
-        for i in range(1,k):
-            cross_join_list = [x + y for x, y in itertools.product(cross_join_list, amino_acids)]
-        vocab = cross_join_list
-        input_ordinal_text_processor.adapt(vocab)
-        r = input_ordinal_text_processor
-    return r
-
+"""Variable to determine the encoding technique"""
 tec = 0
-input_text_processor = encoding(tec)
+if tec == 2:
+    input_vocab = encoding(3)
 
 
 class NMTDataset:
@@ -102,17 +96,13 @@ class NMTDataset:
 
     def preprocessing_sequence(self, seq):
         seq = re.sub(r"[*]", "", seq)
-        # new_seq =""
-        # new_seq = ordinal_encode(seq)
         if tec == 0:
             new_seq = ordinal_encode(seq)
         elif tec == 1:
-            new_seq = ordinal_encode(seq)
             new_seq = one_hot_encoding(seq)
-            # new_seq = input_text_processor(new_seq)
         elif tec == 2:
-            new_seq = k_mer(seq)
-            new_seq = input_text_processor(new_seq)
+            k_mer_seq = k_mer(seq)
+            new_seq = list(map(lambda x: input_vocab.index(x), k_mer_seq))
         # print(new_seq)
         return new_seq
 
@@ -140,18 +130,17 @@ class NMTDataset:
     def load_dataset(self, file, num_examples=None):
         # creating cleaned input, output pairs
         in_seq, out_seq = self.create_dataset(file, num_examples)
-        vocab_size = input_text_processor.vocabulary_size()
+        vocab_size = 20
+        if tec == 2:
+            vocab_size = len(input_vocab)
         return in_seq, vocab_size, out_seq, vocab_size
 
     """for sequences"""
     def call_seq(self, num_examples, BUFFER_SIZE, BATCH_SIZE, file2):
         test_input_tensor, self.test_inp_seq_tokenizer, test_output_tensor, self.test_out_seq_tokenizer = self.load_dataset(file2, num_examples)
-        # train_dataset = tf.data.Dataset.from_tensor_slices(([test_input_tensor], [test_output_tensor]))
         train_dataset = tf.data.Dataset.from_tensor_slices((test_input_tensor, test_output_tensor))
         print(train_dataset)
-        # print(list(train_dataset.as_numpy_iterator()), 'OOOOOOOOOOOOOOO')
         train_dataset = train_dataset.batch(BATCH_SIZE, drop_remainder=True)
-        # print(list(train_dataset.as_numpy_iterator()), 'MMMMMMMMMMMMMM')
         return train_dataset, test_input_tensor, test_output_tensor, self.test_out_seq_tokenizer
 #67:19
 
@@ -166,10 +155,16 @@ class NMTDataset:
 # num_examples = len(train)
 # BATCH_SIZE = 4
 # train_dataset, val_dataset, inp_seq, targ_seq = dataset_creator.call_seq(num_examples, BUFFER_SIZE, BATCH_SIZE, train)
-# # print(train_dataset,"AAAAAAAAAAAAA")
-# # print(next(iter(train_dataset)),"AAAAAAAAAAAAA")
-# # # print(train.head(3))
+# # # print(train_dataset,"AAAAAAAAAAAAA")
+# # # print(next(iter(train_dataset)),"AAAAAAAAAAAAA")
+# # # # print(train.head(3))
 # example_input_batch, example_target_batch = next(iter(train_dataset))
+# a = 'MFVFLVLLPLVSSQCVNLTTRTQLPPAYTNSFTRGVYYPDKVFRSSVLHSTQDLFLPFFSNVTWFHAIHVSGTNGTKRFDNPVLPFNDGVYFASTEKSNIIRGWIFGTTLDSKTQSLLIVNNATNVVIKVCEFQFCNDPFLGVYYHKNNKSWMESEFRVYSSANNCTFEYVSQPFLMDLEGKQGNFKNLREFVFKNIDGYFKIYSKHTPINLVRDLPQGFSALEPLVDLPIGINITRFQTLLALHRSYLTPGDSSSGWTAGAAAYYVGYLQPRTFLLKYNENGTITDAVDCALDPLSETKCTLKSFTVEKGIYQTSNFRVQPTESIVRFPNITNLCPFGEVFNATRFASVYAWNRKRISNCVADYSVLYNSASFSTFKCYGVSPTKLNDLCFTNVYADSFVIRGDEVRQIAPGQTGKIADYNYKLPDDFTGCVIAWNSNNLDSKVGGNYNYLYRLFRKSNLKPFERDISTEIYQAGSTPCNGVEGFNCYFPLQSYGFQPTNGVGYQPYRVVVLSFELLHAPATVCGPKKSTNLVKNKCVNFNFNGLTGTGVLTESNKKFLPFQQFGRDIADTTDAVRDPQTLEILDITPCSFGGVSVITPGTNTSNQVAVLYQGVNCTEVPVAIHADQLTPTWRVYSTGSNVFQTRAGCLIGAEHVNNSYECDIPIGAGICASYQTQTNSPRRARSVASQSIIAYTMSLGAENSVAYSNNSIAIPTNFTISVTTEILPVSMTKTSVDCTMYICGDSTECSNLLLQYGSFCTQLNRALTGIAVEQDKNTQEVFAQVKQIYKTPPIKDFGGFNFSQILPDPSKPSKRSFIEDLLFNKVTLADAGFIKQYGDCLGDIAARDLICAQKFNGLTVLPPLLTDEMIAQYTSALLAGTITSGWTFGAGAALQIPFAMQMAYRFNGIGVTQNVLYENQKLIANQFNSAIGKIQDSLSSTASALGKLQDVVNQNAQALNTLVKQLSSNFGAISSVLNDILSRLDKVEAEVQIDRLITGRLQSLQTYVTQQLIRAAEIRASANLAATKMSECVLGQSKRVDFCGKGYHLMSFPQSAPHGVVFLHVTYVPAQEKNFTTAPAICHDGKAHFPREGVFVSNGTHWFVTQRNFYEPQIITTDNTFVSGNCDVVIGIVNNTVYDPLQPELDSFKEELDKYFKNHTSPDVDLGDISGINASVVNIQKEIDRLNEVAKNLNESLIDLQELGKYEQYIKWPWYIWLGFIAGLIAIVMVTIMLCCMTSCCSCLKGCCSCGSCCKFDEDDSEPVLKGVKLHY'
+# print(len(a))
+# b = train['In']
+# for i in b:
+#     print(i)
+#     break
 # # print(next(iter(train_dataset)),"AAAAAAAAAAAAA")
 # print(example_input_batch.shape, example_target_batch.shape) 
 

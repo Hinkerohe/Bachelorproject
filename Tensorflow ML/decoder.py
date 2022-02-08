@@ -4,19 +4,11 @@ from tensorflow.python.data.ops.dataset_ops import Dataset
 from tensorflow.python.ops.gen_math_ops import arg_max
 import tensorflow_addons as tfa
 from tensorflow.keras.layers.experimental import preprocessing
-
 import tensorflow_text as tf_text
-
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 from sklearn.model_selection import train_test_split
-
-import unicodedata
-import re
 import numpy as np
-import os
-import io
-import time
 import pandas
 import numpy as np
 import Dataset
@@ -66,7 +58,6 @@ class DecoderInput(typing.NamedTuple):
 
 class DecoderOutput(typing.NamedTuple):
   logits: Any
-#   attention_weights: Any
 
 
 class Decoder(tf.keras.layers.Layer):
@@ -96,9 +87,6 @@ class Decoder(tf.keras.layers.Layer):
 
     def call(self, new_tokens, encoder_output,
             state=None) -> Tuple[DecoderOutput, tf.Tensor]:
-        
-        # print(new_tokens.shape, 'AAAAAAAAAAA')
-        # print(encoder_output.shape, 'BBBBBBBBBBB')
 
         # Step 1. Lookup the embeddings
         if Dataset.tec == 1:
@@ -111,37 +99,36 @@ class Decoder(tf.keras.layers.Layer):
         return DecoderOutput(rnn_output), state
 
 """for my dataset, encoder test """
-dataset_creator = Dataset.NMTDataset('seq-seq')
+# dataset_creator = Dataset.NMTDataset('seq-seq')
 
-embedding_dim = 20*20*20
-input_size = 22
-output_size = 22
-units = 22
+# embedding_dim = 20*20*20
+# input_size = 22
+# output_size = 22
+# units = 22
 
-BUFFER_SIZE = len(train)
-BATCH_SIZE = 4
-num_examples = 4
-train_dataset, val_dataset, inp_seq, targ_seq = dataset_creator.call_seq(num_examples, BUFFER_SIZE, BATCH_SIZE, train)
-embedding_dim = targ_seq
-input_size = targ_seq
-output_size = targ_seq
-units = 4
-# # # print(train_dataset, next(iter(train_dataset)), 'AAAAAAAAAAAAAIIIIIII')
-# # train_dataset, test_input, test_output, targ_seq = dataset_creator.call_seq(num_examples, BUFFER_SIZE, BATCH_SIZE, test)
-# # max_vocab_size = 20
-# # units = 20
-example_input_batch, example_target_batch = next(iter(train_dataset))
-# # # for e in train_dataset:
-# # #     print(e, 'AAAAAAAA')
-# # print(example_input_batch, 'AAAAAAAA')
-# # input_size = 20
-# # # Encode the input sequence.
-encoder = Encoder2(input_size,
-                  embedding_dim, units)
-example_enc_output, example_enc_state = encoder(example_input_batch)
-print("Here")
-example_enc_output_out, example_enc_state_out = encoder(example_target_batch)
-print("end")
+# BUFFER_SIZE = len(train)
+# BATCH_SIZE = 4
+# num_examples = 4
+# train_dataset, val_dataset, inp_seq, targ_seq = dataset_creator.call_seq(num_examples, BUFFER_SIZE, BATCH_SIZE, train)
+# embedding_dim = targ_seq
+# input_size = targ_seq
+# output_size = targ_seq
+# units = 4
+# # # # print(train_dataset, next(iter(train_dataset)), 'AAAAAAAAAAAAAIIIIIII')
+# # # train_dataset, test_input, test_output, targ_seq = dataset_creator.call_seq(num_examples, BUFFER_SIZE, BATCH_SIZE, test)
+# # # max_vocab_size = 20
+# # # units = 20
+# example_input_batch, example_target_batch = next(iter(train_dataset))
+# # # # for e in train_dataset:
+# # # #     print(e, 'AAAAAAAA')
+# # # print(example_input_batch, 'AAAAAAAA')
+# # # input_size = 20
+# # # # Encode the input sequence.
+# encoder = Encoder2(input_size,
+#                   embedding_dim, units)
+# example_enc_output, example_enc_state = encoder(example_input_batch)
+# example_enc_output_out, example_enc_state_out = encoder(example_target_batch)
+
 # print(f'Input batch, shape (batch): {example_input_batch.shape}')
 # print(f'Input batch tokens, shape (batch, s): {example_enc_output_out.shape}')
 # print(f'Encoder output, shape (batch, s, units): {example_enc_output.shape}')

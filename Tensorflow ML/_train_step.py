@@ -1,3 +1,4 @@
+from email.policy import default
 import tensorflow as tf
 import decoder as dec
 import keras_encoder as enc
@@ -15,68 +16,82 @@ import tensorflow_text as tf_text
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 
-
+levenshtein = []
 train = pandas.read_csv("./cleanData/cleanData/19A20A.tsv", sep= '\t')
-train = pandas.read_csv("./cleanData/cleanData/20D16.tsv", sep= '\t')
-embedding_dim = 22
-input_size = 20
-output_size = 20
-units = 4
+# train = pandas.read_csv("./cleanData/cleanData/20D16.tsv", sep= '\t')
 
+# per default
+embedding_dim = 20
+units = 20
+
+# for kmer encoding:
 if Dataset.tec == 2:
     embedding_dim = 20*20*20
+
+
 BUFFER_SIZE = len(train)
 BATCH_SIZE = 4
-num_examples = 4
+num_examples = 500
 
-tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir="logs")
-
-loss_fun = tf.keras.losses.SparseCategoricalCrossentropy(
-        from_logits=True, reduction='none')
-
+# create the dataset 
 dataset_creator = Dataset.NMTDataset('seq-seq')
 train_dataset, test_input, test_output, targ_seq = dataset_creator.call_seq(num_examples, BUFFER_SIZE, BATCH_SIZE, train)
 input_size = targ_seq # vocab size
 output_size = targ_seq # vocab size
 units = targ_seq
-print(train_dataset)
-train_dataset.take
 example_input_batch, example_target_batch = next(iter(train_dataset))
 
 inputs = ([example_input_batch, example_target_batch])
 
-# optimizer increase to 0.1
-optimizer=tf.optimizers.Adam(0.1)
+def levenshtein_substitution(sequence1, sequence2):
+    """
+    Implement the function levenshtein_substitution() which takes two sequences
+    of the same length and computes the minimum number of substitutions to
+    transform one into another.
+    """
+    number_substitutions = 0
+    for i in range (0, len(sequence1)):
+        if sequence1[i] != sequence2[i]:
+            number_substitutions +=1
+    return number_substitutions
 
+# to translate the decoder output back to sequence
+def translate(dec_result, full = True):
+    result = []
+    def tranl(seq):
+        # for kmer encoding
+        if Dataset.tec == 2:
+            translated = Dataset.k_mer_decoding(seq)
+        else:
+            translated = Dataset.ordinal_decode(seq)
+        return translated
+    # for translating the 
+    if full:
+        pred_seqences = tf.math.argmax(dec_result, axis = -1)
+        for i in pred_seqences:
+            for j in i:
+                result.append(tranl(j))
+        with open('./Output1.csv', "a") as I:
+            writer = csv.writer(I)
+            writer.writerows(result)
+    else:
+        for i in dec_result:
+            result.append(tranl(i))
+    
+    return result
+
+# definitions for training the NN
+tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir="logs")
+loss_fun = tf.keras.losses.SparseCategoricalCrossentropy(
+        from_logits=True, reduction='none')
+# optimizer increased to 0.1
+optimizer=tf.optimizers.Adam(0.1)
 trainable_variables = tf.keras.Model.trainable_variables
 
-def translate(dec_result):
-    result = []
-    pred_seqences = tf.math.argmax(dec_result, axis = -1)
-    def tranl(batch):
-        sl = []
-        if Dataset.tec == 2:
-            vocab = np.array(Dataset.input_text_processor.get_vocabulary())
-            for seq in batch:
-                for i in range(0,1270,3):
-                    sl.append(vocab[seq[i].numpy()])
-        else:
-            for seq in batch:
-                translated = Dataset.ordinal_decode(seq)
-                sl.append(translated)
-            return sl
-
-    
-    result = list(map(lambda x: tranl(x), pred_seqences))
-    
-    with open('./Output1.csv', "w") as I:
-        writer = csv.writer(I)
-        writer.writerows(result)
-    
 
 #training class
 class TrainSequence(tf.keras.Model):
-    def __init__(self, embedding_dim, units, use_tf_function=True):
+    def __init__(self, embedding_dim, units, use_tf_function=False):
         super().__init__()
     
     # encoder decoder initialization
@@ -88,8 +103,9 @@ class TrainSequence(tf.keras.Model):
         self.encoder = encoder
         self.decoder = decoder
         self.optimizer = optimizer
-
-
+    
+    def _preprocess(Data):
+        return Data
     def _loop_step(self, new_tokens, enc_output, dec_state):
         input_token, target_token = new_tokens[:, 0:1], new_tokens[:, 1:2]
 
@@ -104,11 +120,9 @@ class TrainSequence(tf.keras.Model):
         return step_loss, dec_state
 
     def _train_step(self, inputs, get_output = False):
-        # print(inputs,'BBBBBBBBBBBBBBBBB')
-        
+       
         input_text, target_text = inputs
-
-        max_target_length = tf.shape(target_text)[1]
+        max_target_length = tf.shape(target_text)[1] #time steps
         with tf.GradientTape() as tape:
             # Encode the input
             enc_output, enc_state = self.encoder(input_text)
@@ -117,7 +131,7 @@ class TrainSequence(tf.keras.Model):
             # units.
             dec_state = enc_state
             loss = tf.constant(0.0)
-            # length of one sequence
+
             for t in tf.range(max_target_length-1):
                 # Pass in two tokens from the target sequence:
                 # 1. The current input to the decoder.
@@ -127,9 +141,8 @@ class TrainSequence(tf.keras.Model):
                                                         enc_output, dec_state)
                 loss = loss + step_loss
 
-            # # Average the loss over all non padding tokens. 
-            # fürs auffüllen der sequencen auf die gleiche länge gedacht
-            target_mask = input_text !=0 
+            # Average the loss over all non padding tokens. 
+            target_mask = input_text
 
             average_loss = loss / tf.reduce_sum(tf.cast(target_mask, tf.float32))
         
@@ -139,10 +152,15 @@ class TrainSequence(tf.keras.Model):
         gradients = tape.gradient(average_loss, variables)
         optimizer.apply_gradients(zip(gradients, variables))
         
-        # print output to file
-        if get_output == True:
+        # save the translated output and compare
+        if get_output:
             dec_result, dec_state_end = self.decoder(target_text ,enc_output, state = dec_state)
-            translate(dec_result)
+            translated = translate(dec_result)
+            seq = target_text[0:1,:]
+            result = translate(seq, full = False)
+            dis = levenshtein_substitution(translated[0], result[0])
+            levenshtein.append(dis)
+
 
 
         # Return a dict mapping metric names to current value
@@ -151,34 +169,43 @@ class TrainSequence(tf.keras.Model):
     def train_step(self, inputs):
         return self._train_step(inputs)
 
-class BatchLogs(tf.keras.callbacks.Callback):
-  def __init__(self, key):
-    self.key = key
-    self.logs = []
 
-  def on_train_batch_end(self, n, logs):
-    self.logs.append(logs[self.key])
-
-batch_loss = BatchLogs('batch_loss')
-
-f = open("./Tensorflow ML/DecoderOutput/Output5.csv", "a")
+f = open("./Tensorflow ML/DecoderOutput/Output12.csv", "a")
 
 translator = TrainSequence(
     embedding_dim, units)
 
-# for i in range(1):
-#     inputs = next(iter(train_dataset))
-#     print(i)
-#     a = translator._train_step(inputs, True)
-#     print(a, file=f)
+"""To test the Network:"""
+
+inputs = next(iter(train_dataset))
+losses = []
+for i in range(1000):
+    print(i)
+    # if i%10 == 0:
+    #     a = translator._train_step(inputs, True)
+    # else:
+    a = translator._train_step(inputs, True)
+    losses.append(a['batch_loss'].numpy())
+    print(a, file=f)
+
+"""for plotting:"""
+
+x_axis = levenshtein
+y_axis = [i for i in range(0,len(levenshtein))]
+print(levenshtein)
+plt.plot(y_axis,x_axis)
+plt.axis([0, len(levenshtein), 0, 1273])
+plt.xlabel('Training Iterations')
+plt.ylabel('Levenshtein Distance')
+plt.savefig('Levenshtein_Diagram8.png', dpi = 1000)
 
 # inputs = next(iter(train_dataset))
 
-for i in range(1):
+# for i in range(1):
     
-    print(time.process_time())
-    print(translator._train_step(inputs, True))
-    print(time.process_time())
+#     print(time.process_time())
+#     print(translator._train_step(inputs, True))
+#     print(time.process_time())
 
 # for x in train_dataset:
 #     for n in range(32):
@@ -190,4 +217,4 @@ for i in range(1):
 
 # batch size reducing
 
-
+# translator.save('./savedModel')
